@@ -2,6 +2,16 @@
 
 社内向け統合管理プラットフォームの基盤 (v0.1)。
 
+## 本番環境
+
+| 項目 | 値 |
+|------|----|
+| **本番URL** | https://adam-seven-gamma.vercel.app |
+| **GitHub** | https://github.com/pedro-hbJapan/adam |
+| **Neon プロジェクト** | ep-quiet-surf-aorj7bs8 (ap-southeast-1) |
+
+> **初期パスワードを必ず変更してください**: `master@example.com` / `ChangeMe123!`
+
 ## 技術スタック
 
 - **Next.js 15** (App Router) + TypeScript
