@@ -5,6 +5,11 @@ import { DashboardLayoutClient } from "@/components/DashboardLayoutClient";
 const masterNav = [
   { href: "/dashboard/master", label: "ダッシュボード" },
   { href: "/master/users", label: "ユーザー管理" },
+  { href: "/office/products", label: "商品マスタ" },
+  { href: "/office/customers", label: "取引先" },
+  { href: "/office/orders/new", label: "注文作成" },
+  { href: "/office/orders", label: "注文一覧" },
+  { href: "/warehouse/orders", label: "倉庫注文管理" },
 ];
 
 export default async function MasterLayout({
