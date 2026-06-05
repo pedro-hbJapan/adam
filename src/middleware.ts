@@ -20,6 +20,8 @@ const ROLE_PATHS: Array<{ prefix: string; roles: string[] }> = [
   { prefix: "/dashboard/sales", roles: ["SALES", "MASTER"] },
   { prefix: "/dashboard/customer", roles: ["CUSTOMER", "MASTER"] },
   { prefix: "/master/users", roles: ["MASTER"] },
+  { prefix: "/office", roles: ["OFFICE", "MASTER"] },
+  { prefix: "/warehouse", roles: ["WAREHOUSE", "MASTER"] },
 ];
 
 export async function middleware(req: NextRequest) {
@@ -37,7 +39,13 @@ export async function middleware(req: NextRequest) {
 
   const token = await getToken({
     req,
-    secret: process.env.NEXTAUTH_SECRET,
+    secret: process.env.AUTH_SECRET ?? process.env.NEXTAUTH_SECRET,
+    // NextAuth v5 (Auth.js) uses "__Secure-" prefixed cookie names in production.
+    // In Edge Middleware we must specify the cookie name explicitly.
+    cookieName:
+      process.env.NODE_ENV === "production"
+        ? "__Secure-authjs.session-token"
+        : "authjs.session-token",
   });
 
   // Not authenticated → redirect to login

@@ -30,8 +30,9 @@ function LoginForm() {
     if (result?.error) {
       setError("メールアドレスまたはパスワードが正しくありません。");
     } else {
-      router.push(callbackUrl);
-      router.refresh();
+      // Use hard navigation to ensure the server-side session cookie is
+      // picked up by the next page render (NextAuth v5 + Next.js 15 compat).
+      window.location.href = callbackUrl;
     }
   }
 

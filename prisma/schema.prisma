@@ -30,6 +30,7 @@ model User {
 
   accounts Account[]
   sessions Session[]
+  orders   Order[]
 }
 
 model Account {
@@ -66,4 +67,60 @@ model VerificationToken {
   expires    DateTime
 
   @@unique([identifier, token])
+}
+
+// ─── Order Management ────────────────────────────────────────────────────────
+
+enum OrderStatus {
+  PENDING
+  FEASIBLE
+  PRODUCED
+  PICKED
+}
+
+model Product {
+  id        String   @id @default(cuid())
+  janCode   String   @unique
+  name      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  orderItems OrderItem[]
+}
+
+model Customer {
+  id        String   @id @default(cuid())
+  name      String
+  address   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  orders Order[]
+}
+
+model Order {
+  id           String      @id @default(cuid())
+  orderNumber  String      @unique
+  customerId   String
+  shippingDate DateTime
+  status       OrderStatus @default(PENDING)
+  createdById  String
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+
+  customer  Customer    @relation(fields: [customerId], references: [id])
+  createdBy User        @relation(fields: [createdById], references: [id])
+  items     OrderItem[]
+}
+
+model OrderItem {
+  id          String   @id @default(cuid())
+  orderId     String
+  productId   String
+  boxes       Int
+  unitsPerBox Int
+  createdAt   DateTime @default(now())
+
+  order   Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product Product @relation(fields: [productId], references: [id])
 }

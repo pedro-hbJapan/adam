@@ -1,4 +1,5 @@
 import { auth } from "@/lib/auth";
+import Link from "next/link";
 
 export default async function WarehouseDashboard() {
   const session = await auth();
@@ -16,10 +17,23 @@ export default async function WarehouseDashboard() {
           padding: "1.5rem",
           boxShadow: "0 1px 4px rgba(0,0,0,0.08)",
           maxWidth: 600,
-          color: "#888",
         }}
       >
-        倉庫向け機能はv0.2以降で追加予定です。
+        <Link
+          href="/warehouse/orders"
+          style={{
+            display: "inline-block",
+            padding: "0.75rem 1.5rem",
+            background: "linear-gradient(135deg, #667eea, #764ba2)",
+            color: "white",
+            borderRadius: 8,
+            textDecoration: "none",
+            fontWeight: 600,
+            fontSize: "1rem",
+          }}
+        >
+          注文管理を開く →
+        </Link>
       </div>
     </div>
   );

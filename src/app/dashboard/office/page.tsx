@@ -1,4 +1,5 @@
 import { auth } from "@/lib/auth";
+import Link from "next/link";
 
 export default async function OfficeDashboard() {
   const session = await auth();
@@ -8,19 +9,34 @@ export default async function OfficeDashboard() {
         OFFICEダッシュボード
       </h1>
       <p style={{ color: "#666" }}>ようこそ、{session?.user?.name} さん</p>
+
+      <div style={{ marginTop: "1.5rem", display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))", gap: "1rem", maxWidth: 800 }}>
+        <DashCard href="/office/orders" title="注文一覧" desc="注文のステータス・ピッキング状況を確認" />
+        <DashCard href="/office/orders/new" title="注文作成" desc="新しい注文を作成する" />
+        <DashCard href="/office/products" title="商品マスタ" desc="商品の登録・一覧" />
+        <DashCard href="/office/customers" title="取引先" desc="取引先の登録・一覧" />
+      </div>
+    </div>
+  );
+}
+
+function DashCard({ href, title, desc }: { href: string; title: string; desc: string }) {
+  return (
+    <Link href={href} style={{ textDecoration: "none", color: "inherit" }}>
       <div
         style={{
-          marginTop: "1.5rem",
           background: "white",
           borderRadius: 10,
           padding: "1.5rem",
           boxShadow: "0 1px 4px rgba(0,0,0,0.08)",
-          maxWidth: 600,
-          color: "#888",
+          transition: "box-shadow 0.15s",
         }}
       >
-        オフィス向け機能はv0.2以降で追加予定です。
+        <div style={{ fontWeight: 700, fontSize: "1rem", marginBottom: "0.4rem" }}>
+          {title}
+        </div>
+        <div style={{ fontSize: "0.85rem", color: "#888" }}>{desc}</div>
       </div>
-    </div>
+    </Link>
   );
 }

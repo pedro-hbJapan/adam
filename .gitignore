@@ -38,3 +38,6 @@ next-env.d.ts
 
 # prisma - migrations should be committed
 # prisma/migrations/
+
+.vercel
+.env*
