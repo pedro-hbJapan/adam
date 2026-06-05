@@ -1,53 +1,70 @@
 import { NextResponse } from "next/server";
-import { auth } from "@/lib/auth";
-import { getDashboardPath } from "@/lib/roles";
+import type { NextRequest } from "next/server";
+import { getToken } from "next-auth/jwt";
 import type { Role } from "@prisma/client";
 
-const ROLE_PATHS: Record<string, Role[]> = {
-  "/dashboard/master": ["MASTER"],
-  "/dashboard/office": ["OFFICE", "MASTER"],
-  "/dashboard/warehouse": ["WAREHOUSE", "MASTER"],
-  "/dashboard/sales": ["SALES", "MASTER"],
-  "/dashboard/customer": ["CUSTOMER", "MASTER"],
-  "/master/users": ["MASTER"],
+// Role → home dashboard mapping
+const ROLE_DASHBOARD: Record<string, string> = {
+  MASTER: "/dashboard/master",
+  OFFICE: "/dashboard/office",
+  WAREHOUSE: "/dashboard/warehouse",
+  SALES: "/dashboard/sales",
+  CUSTOMER: "/dashboard/customer",
 };
 
-export default auth((req) => {
+// Route → allowed roles
+const ROLE_PATHS: Array<{ prefix: string; roles: string[] }> = [
+  { prefix: "/dashboard/master", roles: ["MASTER"] },
+  { prefix: "/dashboard/office", roles: ["OFFICE", "MASTER"] },
+  { prefix: "/dashboard/warehouse", roles: ["WAREHOUSE", "MASTER"] },
+  { prefix: "/dashboard/sales", roles: ["SALES", "MASTER"] },
+  { prefix: "/dashboard/customer", roles: ["CUSTOMER", "MASTER"] },
+  { prefix: "/master/users", roles: ["MASTER"] },
+];
+
+export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
-  // Public routes
-  if (pathname.startsWith("/api/auth") || pathname === "/login") {
+  // Skip public/static routes
+  if (
+    pathname.startsWith("/api/auth") ||
+    pathname === "/login" ||
+    pathname.startsWith("/_next") ||
+    pathname.startsWith("/favicon")
+  ) {
     return NextResponse.next();
   }
 
-  const session = req.auth;
+  const token = await getToken({
+    req,
+    secret: process.env.NEXTAUTH_SECRET,
+  });
 
   // Not authenticated → redirect to login
-  if (!session?.user) {
+  if (!token) {
     const loginUrl = new URL("/login", req.url);
     loginUrl.searchParams.set("callbackUrl", pathname);
     return NextResponse.redirect(loginUrl);
   }
 
-  const role = session.user.role as Role;
+  const role = (token.role as string) ?? "CUSTOMER";
 
-  // Check route permissions
-  for (const [path, allowedRoles] of Object.entries(ROLE_PATHS)) {
-    if (pathname.startsWith(path)) {
-      if (!allowedRoles.includes(role)) {
-        return NextResponse.redirect(new URL(getDashboardPath(role), req.url));
+  // Check route-level permissions
+  for (const { prefix, roles } of ROLE_PATHS) {
+    if (pathname.startsWith(prefix)) {
+      if (!roles.includes(role)) {
+        const home = ROLE_DASHBOARD[role] ?? "/dashboard/customer";
+        return NextResponse.redirect(new URL(home, req.url));
       }
       break;
     }
   }
 
   return NextResponse.next();
-});
+}
 
 export const config = {
   matcher: [
-    "/dashboard/:path*",
-    "/master/:path*",
     "/((?!api/auth|_next/static|_next/image|favicon.ico|login).*)",
   ],
 };
