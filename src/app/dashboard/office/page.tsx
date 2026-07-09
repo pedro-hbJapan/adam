@@ -14,7 +14,7 @@ export default async function OfficeDashboard() {
         <DashCard href="/office/orders" title="注文一覧" desc="注文のステータス・ピッキング状況を確認" />
         <DashCard href="/office/orders/new" title="注文作成" desc="新しい注文を作成する" />
         <DashCard href="/office/products" title="商品マスタ" desc="商品の登録・一覧" />
-        <DashCard href="/office/customers" title="取引先" desc="取引先の登録・一覧" />
+        <DashCard href="/office/customers" title="届け先" desc="届け先の登録・一覧" />
       </div>
     </div>
   );

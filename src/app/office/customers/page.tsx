@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useSession } from "next-auth/react";
 
 interface Customer {
   id: string;
@@ -10,6 +11,8 @@ interface Customer {
 }
 
 export default function CustomersPage() {
+  const { data: session } = useSession();
+  const role = session?.user?.role;
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [name, setName] = useState("");
   const [address, setAddress] = useState("");
@@ -17,10 +20,14 @@ export default function CustomersPage() {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
 
-  useEffect(() => {
+  function fetchCustomers() {
     fetch("/api/customers")
       .then((r) => r.json())
       .then(setCustomers);
+  }
+
+  useEffect(() => {
+    fetchCustomers();
   }, []);
 
   async function handleSubmit(e: React.FormEvent) {
@@ -43,7 +50,7 @@ export default function CustomersPage() {
       setCustomers((prev) => [customer, ...prev]);
       setName("");
       setAddress("");
-      setSuccess("取引先を登録しました");
+      setSuccess("届け先を登録しました");
     } catch {
       setError("通信エラーが発生しました");
     } finally {
@@ -51,16 +58,34 @@ export default function CustomersPage() {
     }
   }
 
+  async function handleDelete(id: string) {
+    if (!confirm("削除しますか?")) return;
+    try {
+      const res = await fetch(`/api/customers?id=${encodeURIComponent(id)}`, {
+        method: "DELETE",
+      });
+      if (!res.ok) {
+        const data = await res.json();
+        setError(data.error || "削除に失敗しました");
+        return;
+      }
+      fetchCustomers();
+      setSuccess("届け先を削除しました");
+    } catch {
+      setError("通信エラーが発生しました");
+    }
+  }
+
   return (
     <div>
-      <h1 style={heading}>取引先管理</h1>
+      <h1 style={heading}>届け先管理</h1>
 
       <form onSubmit={handleSubmit} style={formStyle}>
-        <h3 style={{ margin: "0 0 1rem" }}>新規取引先登録</h3>
+        <h3 style={{ margin: "0 0 1rem" }}>新規届け先登録</h3>
         {error && <div style={alertStyle("error")}>{error}</div>}
         {success && <div style={alertStyle("success")}>{success}</div>}
         <div style={fieldStyle}>
-          <label style={labelStyle}>取引先名</label>
+          <label style={labelStyle}>届け先名</label>
           <input
             value={name}
             onChange={(e) => setName(e.target.value)}
@@ -88,7 +113,7 @@ export default function CustomersPage() {
         <table style={tableStyle}>
           <thead>
             <tr>
-              {["取引先名", "住所", "登録日"].map((h) => (
+              {["届け先名", "住所", "登録日", "操作"].map((h) => (
                 <th key={h} style={thStyle}>{h}</th>
               ))}
             </tr>
@@ -101,12 +126,19 @@ export default function CustomersPage() {
                 <td style={tdStyle}>
                   {new Date(c.createdAt).toLocaleDateString("ja-JP")}
                 </td>
+                <td style={tdStyle}>
+                  {role === "MASTER" && (
+                    <button onClick={() => handleDelete(c.id)} style={btnDanger}>
+                      削除
+                    </button>
+                  )}
+                </td>
               </tr>
             ))}
             {customers.length === 0 && (
               <tr>
-                <td colSpan={3} style={{ ...tdStyle, color: "#999", textAlign: "center" }}>
-                  取引先が登録されていません
+                <td colSpan={4} style={{ ...tdStyle, color: "#999", textAlign: "center" }}>
+                  届け先が登録されていません
                 </td>
               </tr>
             )}
@@ -173,6 +205,16 @@ const btnPrimary: React.CSSProperties = {
   fontSize: "0.875rem",
   fontWeight: 600,
   background: "#667eea",
+  color: "white",
+};
+
+const btnDanger: React.CSSProperties = {
+  padding: "0.3rem 0.6rem",
+  borderRadius: 6,
+  border: "none",
+  cursor: "pointer",
+  fontSize: "0.875rem",
+  background: "#e53e3e",
   color: "white",
 };
 

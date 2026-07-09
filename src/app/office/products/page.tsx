@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useSession } from "next-auth/react";
 
 interface Product {
   id: string;
@@ -10,6 +11,8 @@ interface Product {
 }
 
 export default function ProductsPage() {
+  const { data: session } = useSession();
+  const role = session?.user?.role;
   const [products, setProducts] = useState<Product[]>([]);
   const [janCode, setJanCode] = useState("");
   const [name, setName] = useState("");
@@ -17,10 +20,14 @@ export default function ProductsPage() {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
 
-  useEffect(() => {
+  function fetchProducts() {
     fetch("/api/products")
       .then((r) => r.json())
       .then(setProducts);
+  }
+
+  useEffect(() => {
+    fetchProducts();
   }, []);
 
   async function handleSubmit(e: React.FormEvent) {
@@ -48,6 +55,24 @@ export default function ProductsPage() {
       setError("通信エラーが発生しました");
     } finally {
       setLoading(false);
+    }
+  }
+
+  async function handleDelete(id: string) {
+    if (!confirm("削除しますか?")) return;
+    try {
+      const res = await fetch(`/api/products?id=${encodeURIComponent(id)}`, {
+        method: "DELETE",
+      });
+      if (!res.ok) {
+        const data = await res.json();
+        alert(data.error || "削除に失敗しました");
+        return;
+      }
+      fetchProducts();
+    } catch (e) {
+      console.error(e);
+      alert("通信エラーが発生しました");
     }
   }
 
@@ -88,7 +113,7 @@ export default function ProductsPage() {
         <table style={tableStyle}>
           <thead>
             <tr>
-              {["JANコード", "商品名", "登録日"].map((h) => (
+              {["JANコード", "商品名", "登録日", "操作"].map((h) => (
                 <th key={h} style={thStyle}>{h}</th>
               ))}
             </tr>
@@ -101,11 +126,18 @@ export default function ProductsPage() {
                 <td style={tdStyle}>
                   {new Date(p.createdAt).toLocaleDateString("ja-JP")}
                 </td>
+                <td style={tdStyle}>
+                  {role === "MASTER" && (
+                    <button onClick={() => handleDelete(p.id)} style={btnDanger}>
+                      削除
+                    </button>
+                  )}
+                </td>
               </tr>
             ))}
             {products.length === 0 && (
               <tr>
-                <td colSpan={3} style={{ ...tdStyle, color: "#999", textAlign: "center" }}>
+                <td colSpan={4} style={{ ...tdStyle, color: "#999", textAlign: "center" }}>
                   商品が登録されていません
                 </td>
               </tr>
@@ -173,6 +205,16 @@ const btnPrimary: React.CSSProperties = {
   fontSize: "0.875rem",
   fontWeight: 600,
   background: "#667eea",
+  color: "white",
+};
+
+const btnDanger: React.CSSProperties = {
+  padding: "0.3rem 0.6rem",
+  borderRadius: 6,
+  border: "none",
+  cursor: "pointer",
+  fontSize: "0.875rem",
+  background: "#e53e3e",
   color: "white",
 };
 

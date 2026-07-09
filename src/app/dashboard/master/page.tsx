@@ -3,7 +3,7 @@ import Link from "next/link";
 
 const OFFICE_LINKS = [
   { href: "/office/products", label: "商品マスタ" },
-  { href: "/office/customers", label: "取引先" },
+  { href: "/office/customers", label: "届け先" },
   { href: "/office/orders/new", label: "注文作成" },
   { href: "/office/orders", label: "注文一覧" },
 ];
