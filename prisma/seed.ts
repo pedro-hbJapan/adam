@@ -1,4 +1,4 @@
-import { PrismaClient, Role } from "@prisma/client";
+import { PrismaClient, Role, MovementType } from "@prisma/client";
 import bcrypt from "bcryptjs";
 
 const prisma = new PrismaClient();
@@ -25,35 +25,87 @@ async function main() {
     console.log("Seed: MASTER user already exists, skipping.");
   }
 
-  // Seed products (テスト商品3件)
-  const products = [
-    { janCode: "4901234567890", name: "北海道産大豆 1kg" },
-    { janCode: "4901234567891", name: "丹波黒豆 500g" },
-    { janCode: "4901234567892", name: "小豆 赤 800g" },
+  // Seed inventory items (テスト商品3件)
+  const items = [
+    {
+      janCode: "4901234567890",
+      name: "北海道産大豆 1kg",
+      manufacturer: "北海道フーズ株式会社",
+      supplier: "豆卸センター",
+      specification: "1ケース/12個入",
+      unitsPerCase: 12,
+      expirationDate: new Date("2027-03-31"),
+    },
+    {
+      janCode: "4901234567891",
+      name: "丹波黒豆 500g",
+      manufacturer: "丹波黒豆本舗",
+      supplier: null,
+      specification: "1ケース/20個入",
+      unitsPerCase: 20,
+      expirationDate: new Date("2027-06-30"),
+    },
+    {
+      janCode: "4901234567892",
+      name: "小豆 赤 800g",
+      manufacturer: "有限会社まめ工房",
+      supplier: "豆卸センター",
+      specification: "1ケース/10個入",
+      unitsPerCase: 10,
+      expirationDate: null,
+    },
   ];
 
-  for (const p of products) {
-    await prisma.product.upsert({
-      where: { janCode: p.janCode },
+  const createdItems = [];
+  for (const i of items) {
+    const item = await prisma.inventoryItem.upsert({
+      where: { janCode: i.janCode },
       update: {},
-      create: p,
+      create: i,
     });
+    createdItems.push(item);
   }
-  console.log("Seed: 3 products created/verified.");
+  console.log("Seed: 3 inventory items created/verified.");
 
-  // Seed customers (取引先2件)
-  const customers = [
-    { name: "株式会社 豆の里", address: "東京都中央区日本橋1-2-3" },
-    { name: "有限会社 まめ屋", address: "大阪府大阪市北区梅田4-5-6" },
-  ];
-
-  for (const c of customers) {
-    const ex = await prisma.customer.findFirst({ where: { name: c.name } });
-    if (!ex) {
-      await prisma.customer.create({ data: c });
-    }
+  // Seed stock movements (入出荷履歴)
+  const existingMovements = await prisma.stockMovement.count();
+  if (existingMovements === 0) {
+    await prisma.stockMovement.createMany({
+      data: [
+        {
+          itemId: createdItems[0].id,
+          type: MovementType.IN,
+          date: new Date("2026-06-01"),
+          quantity: 50,
+          note: "初回入荷",
+        },
+        {
+          itemId: createdItems[0].id,
+          type: MovementType.OUT,
+          date: new Date("2026-06-15"),
+          quantity: 10,
+          note: "出荷分",
+        },
+        {
+          itemId: createdItems[1].id,
+          type: MovementType.IN,
+          date: new Date("2026-06-05"),
+          quantity: 30,
+          note: "初回入荷",
+        },
+        {
+          itemId: createdItems[2].id,
+          type: MovementType.IN,
+          date: new Date("2026-06-10"),
+          quantity: 20,
+          note: "初回入荷",
+        },
+      ],
+    });
+    console.log("Seed: 4 stock movements created.");
+  } else {
+    console.log("Seed: stock movements already exist, skipping.");
   }
-  console.log("Seed: 2 customers created/verified.");
 }
 
 main()

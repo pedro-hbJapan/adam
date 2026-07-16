@@ -8,35 +8,26 @@ export default async function OfficeDashboard() {
       <h1 style={{ margin: "0 0 0.5rem", fontSize: "1.75rem", fontWeight: 700 }}>
         OFFICEダッシュボード
       </h1>
-      <p style={{ color: "#666" }}>ようこそ、{session?.user?.name} さん</p>
+      <p style={{ color: "#666", marginBottom: "1.5rem" }}>
+        ようこそ、{session?.user?.name} さん
+      </p>
 
-      <div style={{ marginTop: "1.5rem", display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))", gap: "1rem", maxWidth: 800 }}>
-        <DashCard href="/office/orders" title="注文一覧" desc="注文のステータス・ピッキング状況を確認" />
-        <DashCard href="/office/orders/new" title="注文作成" desc="新しい注文を作成する" />
-        <DashCard href="/office/products" title="商品マスタ" desc="商品の登録・一覧" />
-        <DashCard href="/office/customers" title="届け先" desc="届け先の登録・一覧" />
+      <div className="grid max-w-2xl grid-cols-1 gap-4 sm:grid-cols-2">
+        <Link
+          href="/office/inventory"
+          className="block rounded-lg border border-gray-200 bg-white p-5 shadow-sm transition-shadow hover:shadow-md"
+        >
+          <div className="mb-1 text-base font-bold">在庫管理</div>
+          <div className="text-sm text-gray-500">在庫アイテムの登録・入出荷管理</div>
+        </Link>
+        <Link
+          href="/office/shipments"
+          className="block rounded-lg border border-gray-200 bg-white p-5 shadow-sm transition-shadow hover:shadow-md"
+        >
+          <div className="mb-1 text-base font-bold">出荷指示書</div>
+          <div className="text-sm text-gray-500">出荷指示書の作成・管理</div>
+        </Link>
       </div>
     </div>
-  );
-}
-
-function DashCard({ href, title, desc }: { href: string; title: string; desc: string }) {
-  return (
-    <Link href={href} style={{ textDecoration: "none", color: "inherit" }}>
-      <div
-        style={{
-          background: "white",
-          borderRadius: 10,
-          padding: "1.5rem",
-          boxShadow: "0 1px 4px rgba(0,0,0,0.08)",
-          transition: "box-shadow 0.15s",
-        }}
-      >
-        <div style={{ fontWeight: 700, fontSize: "1rem", marginBottom: "0.4rem" }}>
-          {title}
-        </div>
-        <div style={{ fontSize: "0.85rem", color: "#888" }}>{desc}</div>
-      </div>
-    </Link>
   );
 }

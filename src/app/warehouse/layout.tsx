@@ -6,7 +6,6 @@ import { signOut } from "next-auth/react";
 import { useState } from "react";
 
 const NAV_ITEMS = [
-  { href: "/warehouse/orders", label: "注文一覧" },
   { href: "/dashboard/warehouse", label: "ダッシュボード" },
 ];
 

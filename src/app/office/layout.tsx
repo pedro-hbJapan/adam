@@ -2,11 +2,9 @@ import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import { DashboardLayoutClient } from "@/components/DashboardLayoutClient";
 
-const officeNav = [
-  { href: "/office/products", label: "商品マスタ" },
-  { href: "/office/customers", label: "届け先" },
-  { href: "/office/orders/new", label: "注文作成" },
-  { href: "/office/orders", label: "注文一覧" },
+const officeNav: { href: string; label: string }[] = [
+  { href: "/office/inventory", label: "在庫管理" },
+  { href: "/office/shipments", label: "出荷指示書" },
 ];
 
 export default async function OfficeLayout({

@@ -30,7 +30,6 @@ model User {
 
   accounts Account[]
   sessions Session[]
-  orders   Order[]
 }
 
 model Account {
@@ -69,58 +68,66 @@ model VerificationToken {
   @@unique([identifier, token])
 }
 
-// ─── Order Management ────────────────────────────────────────────────────────
+// ─── Warehouse Inventory Management ─────────────────────────────────────────
 
-enum OrderStatus {
-  PENDING
-  FEASIBLE
-  PRODUCED
-  PICKED
+enum MovementType {
+  IN
+  OUT
 }
 
-model Product {
-  id        String   @id @default(cuid())
-  janCode   String   @unique
-  name      String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  orderItems OrderItem[]
+enum ShipmentStatus {
+  DRAFT
+  CONFIRMED
+  SHIPPED
 }
 
-model Customer {
-  id        String   @id @default(cuid())
-  name      String
-  address   String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+model InventoryItem {
+  id             String    @id @default(cuid())
+  janCode        String    @unique
+  name           String
+  manufacturer   String // メーカー名(他社商品のため必須)
+  supplier       String? // 仕入先(任意)
+  specification  String // 規格テキスト(例: '1ケース/12個入')
+  unitsPerCase   Int // 1ケースあたりの入数
+  expirationDate DateTime? // 賞味期限(ロットにより異なる場合はnull可)
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
 
-  orders Order[]
+  movements     StockMovement[]
+  shipmentItems ShipmentOrderItem[]
 }
 
-model Order {
-  id           String      @id @default(cuid())
-  orderNumber  String      @unique
-  customerId   String
-  shippingDate DateTime
-  status       OrderStatus @default(PENDING)
-  createdById  String
-  createdAt    DateTime    @default(now())
-  updatedAt    DateTime    @updatedAt
+model StockMovement {
+  id        String       @id @default(cuid())
+  itemId    String
+  type      MovementType // IN=入荷, OUT=出荷
+  date      DateTime // 入荷日 or 出荷日
+  quantity  Int // 数量(ケース数)
+  note      String? // 備考
+  createdAt DateTime     @default(now())
 
-  customer  Customer    @relation(fields: [customerId], references: [id])
-  createdBy User        @relation(fields: [createdById], references: [id])
-  items     OrderItem[]
+  item InventoryItem @relation(fields: [itemId], references: [id], onDelete: Cascade)
 }
 
-model OrderItem {
-  id          String   @id @default(cuid())
-  orderId     String
-  productId   String
-  boxes       Int
-  unitsPerBox Int
-  createdAt   DateTime @default(now())
+model ShipmentOrder {
+  id          String         @id @default(cuid())
+  orderNumber String         @unique // SHP-YYYYMMDD-XXXX
+  shipDate    DateTime // 出荷予定日
+  status      ShipmentStatus @default(DRAFT)
+  note        String?
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
 
-  order   Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
-  product Product @relation(fields: [productId], references: [id])
+  items ShipmentOrderItem[]
+}
+
+model ShipmentOrderItem {
+  id              String  @id @default(cuid())
+  shipmentOrderId String
+  itemId          String
+  quantity        Int // 出荷数(ケース数)
+  note            String?
+
+  shipmentOrder ShipmentOrder @relation(fields: [shipmentOrderId], references: [id], onDelete: Cascade)
+  item          InventoryItem @relation(fields: [itemId], references: [id])
 }
