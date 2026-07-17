@@ -2,10 +2,8 @@ import { auth } from "@/lib/auth";
 import Link from "next/link";
 
 const OFFICE_LINKS = [
-  { href: "/office/products", label: "商品マスタ" },
-  { href: "/office/customers", label: "届け先" },
-  { href: "/office/orders/new", label: "注文作成" },
-  { href: "/office/orders", label: "注文一覧" },
+  { href: "/office/inventory", label: "在庫管理" },
+  { href: "/office/shipments", label: "出荷指示書" },
 ];
 
 const WAREHOUSE_LINKS = [
